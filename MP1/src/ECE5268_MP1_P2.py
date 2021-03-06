@@ -61,7 +61,7 @@ class OlsModel(object):
         self._Rinv = np.linalg.inv(self._R)
         self._W = np.dot(np.dot(self._Rinv, self._Xtrain.T), self._Ytrain)
 
-    def plot(self, fileName):
+    def plot(self, fileName, show=False):
         numSteps = 100
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -78,12 +78,14 @@ class OlsModel(object):
         Z = zs.reshape(X.shape)
 
         ax.plot_surface(X, Y, Z)
+        ax.scatter(self._X[:,0], self._X[:,1], self._Y)
 
         ax.set_xlabel(self._inputList[0])
         ax.set_ylabel(self._inputList[1])
         ax.set_zlabel(self._output)
         plt.savefig(fileName)
-        plt.show()
+        if show:
+            plt.show()
 
     def __del__(self):
         """ Descructor """
@@ -134,7 +136,7 @@ def main():
     model1.split(train=200,validation=100)
     model1.train()
     print(model1)
-    model1.plot('model1.jpg')
+    model1.plot(fileName='model1.jpg',show=True)
 
 if __name__ == "__main__":
     main()
