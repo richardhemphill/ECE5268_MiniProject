@@ -27,6 +27,7 @@ test set (remaining 92 samples).
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+from pandas import *
 
 class OlsModel(object):
 
@@ -43,19 +44,33 @@ class OlsModel(object):
         self._data = []
         self._X = []
         self._Y = []
+        self._W = []
         self._loadDataSet()
         self._initData()
 
     def split(self, train, validation):
-        self._Xtrain = self._X[train-1:]
-        self._Ytrain = self._Y[train-1:]
+        self._Xtrain = self._X[:train-1]
+        self._Ytrain = self._Y[:train-1]
         self._Xvalidation = self._X[train:validation-1]
         self._Yvalidation = self._Y[train:validation-1]
-        self._Xtest = self._X[:validation]
-        self._Ytest = self._Y[:validation]
+        self._Xtest = self._X[validation:]
+        self._Ytest = self._Y[validation:]
 
     def train(self):
-        pass
+        print('Xtrain')
+        print(DataFrame(self._Xtrain))
+        self._R = np.dot(self._Xtrain.T, self._Xtrain)
+        print('R')
+        print(DataFrame(self._R))
+        Rinv = np.linalg.inv(self._R)
+        print('Rinv')
+        print(DataFrame(Rinv))
+        RinvXt = np.dot(Rinv, self._Xtrain.T)
+        print('RinvXt')
+        print(DataFrame(RinvXt))
+        self._W = np.dot(RinvXt, self._Ytrain)
+        print('W')
+        print(DataFrame(self._W))
 
     def __del__(self):
         """ Descructor """
@@ -100,6 +115,7 @@ class OlsModel(object):
 def main():
     mpgModel1 = OlsModel(inputList=['cylinders','displacement'], output='mpg')
     mpgModel1.split(train=200,validation=100)
+    mpgModel1.train()
     print(mpgModel1)
 
 if __name__ == "__main__":
