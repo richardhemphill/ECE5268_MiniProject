@@ -57,20 +57,33 @@ class OlsModel(object):
         self._Ytest = self._Y[validation:]
 
     def train(self):
-        print('Xtrain')
-        print(DataFrame(self._Xtrain))
         self._R = np.dot(self._Xtrain.T, self._Xtrain)
-        print('R')
-        print(DataFrame(self._R))
-        Rinv = np.linalg.inv(self._R)
-        print('Rinv')
-        print(DataFrame(Rinv))
-        RinvXt = np.dot(Rinv, self._Xtrain.T)
-        print('RinvXt')
-        print(DataFrame(RinvXt))
-        self._W = np.dot(RinvXt, self._Ytrain)
-        print('W')
-        print(DataFrame(self._W))
+        self._Rinv = np.linalg.inv(self._R)
+        self._W = np.dot(np.dot(self._Rinv, self._Xtrain.T), self._Ytrain)
+
+    def plot(self, fileName):
+        numSteps = 100
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        Xmin = min(self._X[:,0])
+        Xmax = max(self._X[:,0])
+        Xstep = (Xmax-Xmin)/numSteps
+        x = np.arange(Xmin, Xmax, Xstep)
+        Ymin = min(self._X[:,1])
+        Ymax = max(self._X[:,1])
+        Ystep = (Ymax - Ymin)/numSteps
+        y = np.arange(Ymin, Ymax, Ystep)
+        X, Y = np.meshgrid(x, y)
+        zs = np.array(self._preditionEquation(np.ravel(X), np.ravel(Y)))
+        Z = zs.reshape(X.shape)
+
+        ax.plot_surface(X, Y, Z)
+
+        ax.set_xlabel(self._inputList[0])
+        ax.set_ylabel(self._inputList[1])
+        ax.set_zlabel(self._output)
+        plt.savefig(fileName)
+        plt.show()
 
     def __del__(self):
         """ Descructor """
@@ -79,9 +92,10 @@ class OlsModel(object):
 
     def __str__(self):
         eq = '{} = '.format(self._output)
+        weight = lambda i: ('+' if i > 0 else '') + '{:0.6}'.format(i)
         for idx, x in enumerate(self._inputList):
-            eq = eq + '{}*{} + '.format(self._W[idx], x)
-        eq = eq + '{}'.format(self._W[-1])
+            eq = eq + '{}*{}'.format(weight(self._W[idx]), x)
+        eq = eq + weight(self._W[-1])
         return eq
 
     def _loadDataSet(self):
@@ -111,12 +125,16 @@ class OlsModel(object):
 
         self._W = np.ones(len(self._inputList)+1)
 
+    def _preditionEquation(self, x, y):
+        return self._W[0] * x + self._W[1] * y + self._W[2]
+
 
 def main():
-    mpgModel1 = OlsModel(inputList=['cylinders','displacement'], output='mpg')
-    mpgModel1.split(train=200,validation=100)
-    mpgModel1.train()
-    print(mpgModel1)
+    model1 = OlsModel(inputList=['cylinders','displacement'], output='mpg')
+    model1.split(train=200,validation=100)
+    model1.train()
+    print(model1)
+    model1.plot('model1.jpg')
 
 if __name__ == "__main__":
     main()
