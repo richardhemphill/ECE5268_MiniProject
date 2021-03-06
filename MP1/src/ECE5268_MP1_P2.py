@@ -24,38 +24,83 @@ test set (remaining 92 samples).
 """
 
 # Libraries
-import csv
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 
-class MpgModel(object):
+class OlsModel(object):
 
     # Constants
     DATASET_FILE = 'autompg_dataset.csv'
 
-    def __init__(self, dataSetFile=DATASET_FILE):
+    def __init__(self, inputList, output, dataSetFile=DATASET_FILE):
         """ Constructor """
         # dataSetFile - CSV file containing automotive data.
-        self._loadDataSet(dataSetFile)
+
+        self._inputList = inputList
+        self._output = output
+        self._dataSetFile = dataSetFile
+        self._data = []
+        self._X = []
+        self._Y = []
+        self._loadDataSet()
+        self._initData()
+
+    def split(self, train, validation):
+        self._Xtrain = self._X[train-1:]
+        self._Ytrain = self._Y[train-1:]
+        self._Xvalidation = self._X[train:validation-1]
+        self._Yvalidation = self._Y[train:validation-1]
+        self._Xtest = self._X[:validation]
+        self._Ytest = self._Y[:validation]
+
+    def train(self):
+        pass
 
     def __del__(self):
         """ Descructor """
         self._data = None
+        self._X = None
 
     def __str__(self):
-        return repr(self._data)
+        eq = '{} = '.format(self._output)
+        for idx, x in enumerate(self._inputList):
+            eq = eq + '{}*{} + '.format(self._W[idx], x)
+        eq = eq + '{}'.format(self._W[-1])
+        return eq
 
-    def _loadDataSet(self, dataSetFile):
-        """ Loads Data into Data Matrix """
+    def _loadDataSet(self):
+        """ Loads cata into data matrix """
         # dataSetFile - CSV file containing automotive data.
-        csvFile = open(dataSetFile, 'r')
-        #self._data = list(csv.reader(csvFile, delimiter=","))
+
+        # retrieve data from CSV
+        csvFile = open(self._dataSetFile, 'r')
         self._data = np.genfromtxt(csvFile, delimiter=',', names=True, case_sensitive=True)
         csvFile.close()
 
+        # shuffle data randomly so that training will not use same sets
+        random.shuffle(self._data)
+
+    def _initData(self):
+        """ Initialize matrices used for regression """
+        # create design matrix with list of input parameters
+        self._X = self._data[self._inputList[0]]
+        for input in self._inputList[1:]:
+            self._X = np.column_stack((self._X, self._data[input]))
+
+        # column of ones to augment the design matrix
+        self._X = np.column_stack((self._X, np.ones(len(self._X))))
+
+        # create output vector from data
+        self._Y = self._data[self._output]
+
+        self._W = np.ones(len(self._inputList)+1)
+
+
 def main():
-    mpgModel = MpgModel()
-    print(mpgModel)
+    mpgModel1 = OlsModel(inputList=['cylinders','displacement'], output='mpg')
+    mpgModel1.split(train=200,validation=100)
+    print(mpgModel1)
 
 if __name__ == "__main__":
     main()
