@@ -175,8 +175,8 @@ def processModels(models, train, validation):
 def main():
     shuffleData=True
     models = []
-    models.append(OlsModel(name='model1',inputList=['cylinders', 'displacement'],output='mpg',shuffle=shuffleData))
-    models.append(OlsModel(name='model2', inputList=['cylinders', 'displacement', 'horsepower', 'weight','acceleration'],output='mpg',shuffle=shuffleData))
+    models.append(OlsModel(name='model 1',inputList=['cylinders', 'displacement'],output='mpg',shuffle=shuffleData))
+    models.append(OlsModel(name='model 2', inputList=['cylinders', 'displacement', 'horsepower', 'weight','acceleration'],output='mpg',shuffle=shuffleData))
     processModels(models, train=200, validation=100)
     determineBest(models)
     models[0].plot(show=True)
