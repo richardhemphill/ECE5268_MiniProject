@@ -34,12 +34,13 @@ class OlsModel(object):
     # Constants
     DATASET_FILE = 'autompg_dataset.csv'
 
-    def __init__(self, inputList, output, dataSetFile=DATASET_FILE):
+    def __init__(self, name, inputList, output, shuffle=True, dataSetFile=DATASET_FILE):
         """ Constructor """
         # dataSetFile - CSV file containing automotive data.
-
+        self._name = name
         self._inputList = inputList
         self._output = output
+        self._shuffle = shuffle
         self._dataSetFile = dataSetFile
         self._data = []
         self._X = []
@@ -48,20 +49,40 @@ class OlsModel(object):
         self._loadDataSet()
         self._initData()
 
+    @property
+    def name(self):
+        return self._name
+
     def split(self, train, validation):
         self._Xtrain = self._X[:train-1]
         self._Ytrain = self._Y[:train-1]
-        self._Xvalidation = self._X[train:validation-1]
-        self._Yvalidation = self._Y[train:validation-1]
+        self._Xvalidation = self._X[train:train+validation-1]
+        self._Yvalidation = self._Y[train:train+validation-1]
         self._Xtest = self._X[validation:]
         self._Ytest = self._Y[validation:]
 
-    def train(self):
+    def train(self, report=False):
         self._R = np.dot(self._Xtrain.T, self._Xtrain)
         self._Rinv = np.linalg.inv(self._R)
         self._W = np.dot(np.dot(self._Rinv, self._Xtrain.T), self._Ytrain)
+        mse = self._mse(self._Ytrain, np.dot(self._Xtrain, self._W))
+        if report:
+            print('Training MSE ({}): {:0.6}'.format(self.name, mse))
+        return mse
 
-    def plot(self, fileName, show=False):
+    def validate(self, report=False):
+        mse = self._mse(self._Yvalidation, np.dot(self._Xvalidation, self._W))
+        if report:
+            print('Validation MSE ({}): {:0.6}'.format(self.name, mse))
+        return mse
+
+    def test(self, report=False):
+        mse = self._mse(self._Ytest, np.dot(self._Xtest, self._W))
+        if report:
+            print('Test MSE ({}): {:0.6}'.format(self.name, mse))
+        return mse
+
+    def plot(self, show=False):
         numSteps = 100
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -83,7 +104,8 @@ class OlsModel(object):
         ax.set_xlabel(self._inputList[0])
         ax.set_ylabel(self._inputList[1])
         ax.set_zlabel(self._output)
-        plt.savefig(fileName)
+        plt.title(self._name)
+        plt.savefig('{}.jpg'.format(self._name))
         if show:
             plt.show()
 
@@ -93,7 +115,7 @@ class OlsModel(object):
         self._X = None
 
     def __str__(self):
-        eq = '{} = '.format(self._output)
+        eq = 'Prediction Equation ({}): {} = '.format(self._name, self._output)
         weight = lambda i: ('+' if i > 0 else '') + '{:0.6}'.format(i)
         for idx, x in enumerate(self._inputList):
             eq = eq + '{}*{}'.format(weight(self._W[idx]), x)
@@ -110,7 +132,8 @@ class OlsModel(object):
         csvFile.close()
 
         # shuffle data randomly so that training will not use same sets
-        random.shuffle(self._data)
+        if self._shuffle:
+            random.shuffle(self._data)
 
     def _initData(self):
         """ Initialize matrices used for regression """
@@ -130,13 +153,33 @@ class OlsModel(object):
     def _preditionEquation(self, x, y):
         return self._W[0] * x + self._W[1] * y + self._W[2]
 
+    def _mse(self, actual, predicted):
+        return np.square(np.subtract(actual, predicted)).mean()
+
+
+def determineBest(models):
+    bestMse = float("inf")
+    for model in models:
+        mse = model.validate(report=True)
+        if mse < bestMse:
+            bestMse = mse
+            bestModel = model
+
+    print('{} is the best and has a test set MSE of {:0.6}!'.format(bestModel.name, bestModel.test()))
 
 def main():
-    model1 = OlsModel(inputList=['cylinders','displacement'], output='mpg')
-    model1.split(train=200,validation=100)
-    model1.train()
-    print(model1)
-    model1.plot(fileName='model1.jpg',show=True)
+    shuffleData=True
+    models = []
+    models.append(OlsModel(name='model1',inputList=['cylinders', 'displacement'],output='mpg',shuffle=shuffleData))
+    models[0].split(train=200, validation=100)
+    models[0].train(report=True)
+    print(models[0])
+    models[0].plot()
+    models.append(OlsModel(name='model2', inputList=['cylinders', 'displacement', 'horsepower', 'weight','acceleration'],output='mpg',shuffle=shuffleData))
+    models[1].split(train=200, validation=100)
+    models[1].train(report=True)
+    print(models[1])
+    determineBest(models)
 
 if __name__ == "__main__":
     main()
