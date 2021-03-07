@@ -27,7 +27,6 @@ test set (remaining 92 samples).
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-from pandas import *
 
 class OlsModel(object):
 
@@ -167,19 +166,21 @@ def determineBest(models):
 
     print('{} is the best and has a test set MSE of {:0.6}!'.format(bestModel.name, bestModel.test()))
 
+def processModels(models, train, validation):
+    for model in models:
+        model.split(train, validation)
+        model.train(report=True)
+        print(model)
+
 def main():
     shuffleData=True
     models = []
     models.append(OlsModel(name='model1',inputList=['cylinders', 'displacement'],output='mpg',shuffle=shuffleData))
-    models[0].split(train=200, validation=100)
-    models[0].train(report=True)
-    print(models[0])
-    models[0].plot()
     models.append(OlsModel(name='model2', inputList=['cylinders', 'displacement', 'horsepower', 'weight','acceleration'],output='mpg',shuffle=shuffleData))
-    models[1].split(train=200, validation=100)
-    models[1].train(report=True)
-    print(models[1])
+    processModels(models, train=200, validation=100)
     determineBest(models)
+    models[0].plot(show=True)
+
 
 if __name__ == "__main__":
     main()
