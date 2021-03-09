@@ -2,4 +2,5 @@
 archive/
 *.jpg
 *.docx
-MP1/Hemphill_MP1_P2.pdf
+*.pdf
+*settings.json
