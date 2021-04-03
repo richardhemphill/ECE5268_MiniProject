@@ -3,6 +3,7 @@ archive/
 timit/
 resource/
 images/
+dataSet/
 *.jpg
 *.docx
 *.pdf
