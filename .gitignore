@@ -1,6 +1,7 @@
 
 archive/
 timit/
+resource/
 *.jpg
 *.docx
 *.pdf
