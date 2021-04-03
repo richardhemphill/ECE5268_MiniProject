@@ -2,7 +2,9 @@
 archive/
 timit/
 resource/
+images/
 *.jpg
 *.docx
 *.pdf
 *settings.json
+*.zip
