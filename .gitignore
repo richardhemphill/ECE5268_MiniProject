@@ -4,6 +4,7 @@ timit/
 resource/
 images/
 dataSet/
+test/
 *.jpg
 *.docx
 *.pdf
