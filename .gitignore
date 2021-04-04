@@ -5,8 +5,12 @@ resource/
 images/
 dataSet/
 test/
+tmp/
+checkpoint
 *.jpg
+*.png
 *.docx
 *.pdf
 *settings.json
 *.zip
+..*
